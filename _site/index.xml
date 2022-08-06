@@ -1,0 +1,253 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<rss  xmlns:atom="http://www.w3.org/2005/Atom" 
+      xmlns:media="http://search.yahoo.com/mrss/" 
+      xmlns:content="http://purl.org/rss/1.0/modules/content/" 
+      xmlns:dc="http://purl.org/dc/elements/1.1/" 
+      version="2.0">
+<channel>
+<title>Non Standard Dev</title>
+<link>https://non-std-dev.netlify.app/index.html</link>
+<atom:link href="https://non-std-dev.netlify.app/index.xml" rel="self" type="application/rss+xml"/>
+<description>Johnny Breen's blog.</description>
+<generator>quarto-1.0.38</generator>
+<lastBuildDate>Fri, 18 Feb 2022 00:00:00 GMT</lastBuildDate>
+<item>
+  <title>Closures</title>
+  <dc:creator>Johnny Breen</dc:creator>
+  <link>https://non-std-dev.netlify.app/posts/closures/index.html</link>
+  <description><![CDATA[ 
+
+
+
+
+<p>Another day goes by and another poor sod finds themselves trawling through Google to figure out what on earth a closure is.</p>
+<p>Well, I say that as if this is some kind of ‘hot’ topic in the <a href="https://twitter.com/search?q=%23rstats&amp;src=typed_query">#rstats</a> community: it’s not. If anything it’s ‘hot’ for all the wrong reasons: we’ve all come across the error ‘object of type closure is not subsettable’ before.</p>
+<p>You can be a very capable data scientist and have no clue what a closure is. But, I actually <em>like</em> this stuff. Plus, this concept is something that is shared amongst other popular programming languages like JavaScript, Swift and Ruby so it’s kind of useful to know what it is.</p>
+<p>So, presuming you’re not bored yet and still wondering what I’m on about, have a little look at the following code snippet and have a little think about what would happen if I called <code>g</code>. Try to think about it yourself before scrolling further!</p>
+<div class="cell">
+<div class="sourceCode cell-code" id="cb1" style="background: #f1f3f5;"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb1-1"><span class="co" style="color: #5E5E5E;"># Returns another function which has the ability to print the value for the symbol `text`</span></span>
+<span id="cb1-2">f <span class="ot" style="color: #003B4F;">&lt;-</span> <span class="cf" style="color: #003B4F;">function</span>() {</span>
+<span id="cb1-3">  </span>
+<span id="cb1-4">  text <span class="ot" style="color: #003B4F;">&lt;-</span> <span class="st" style="color: #20794D;">"Here!"</span></span>
+<span id="cb1-5">  </span>
+<span id="cb1-6">  <span class="cf" style="color: #003B4F;">function</span>() {</span>
+<span id="cb1-7">    <span class="fu" style="color: #4758AB;">print</span>(text)</span>
+<span id="cb1-8">  }</span>
+<span id="cb1-9">}</span>
+<span id="cb1-10"></span>
+<span id="cb1-11"><span class="co" style="color: #5E5E5E;"># Returns a call to the function returned by `f()` (above)</span></span>
+<span id="cb1-12">g <span class="ot" style="color: #003B4F;">&lt;-</span> <span class="cf" style="color: #003B4F;">function</span>() {</span>
+<span id="cb1-13">  </span>
+<span id="cb1-14">  text <span class="ot" style="color: #003B4F;">&lt;-</span> <span class="st" style="color: #20794D;">"There!"</span></span>
+<span id="cb1-15">  </span>
+<span id="cb1-16">  print_text <span class="ot" style="color: #003B4F;">&lt;-</span> <span class="fu" style="color: #4758AB;">f</span>()</span>
+<span id="cb1-17">  <span class="fu" style="color: #4758AB;">print_text</span>()</span>
+<span id="cb1-18">}</span></code></pre></div>
+</div>
+<p>Have you thought about it yet?</p>
+<p>Good. OK: here goes nothing!</p>
+<div class="cell">
+<div class="sourceCode cell-code" id="cb2" style="background: #f1f3f5;"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb2-1"><span class="fu" style="color: #4758AB;">g</span>()</span></code></pre></div>
+<div class="cell-output cell-output-stdout">
+<pre><code>[1] "Here!"</code></pre>
+</div>
+</div>
+<p>Boom. Now, if you aren’t a regular user of R this behaviour could be quite bemusing. For instance, we have defined two values for the symbol <code>text</code>: how does R select one of them?</p>
+<p>Even if you are a regular user of R, you may still be wondering <em>how</em> to explain this. And you wouldn’t really be able to without first understanding the concept of closures and lexical scope. So let me attempt to elucidate things for you slightly :wink:</p>
+<section id="a-simple-example" class="level2">
+<h2 class="anchored" data-anchor-id="a-simple-example">A simple example</h2>
+<p>The example shown above is a little bit complicated.</p>
+<p>So let’s start with something really simple and build up the complexity as we go. First, take a look at this function</p>
+<div class="cell">
+<div class="sourceCode cell-code" id="cb4" style="background: #f1f3f5;"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb4-1">open <span class="ot" style="color: #003B4F;">&lt;-</span> <span class="cf" style="color: #003B4F;">function</span>() {</span>
+<span id="cb4-2">  x <span class="sc" style="color: #5E5E5E;">+</span> <span class="dv" style="color: #AD0000;">3</span></span>
+<span id="cb4-3">}</span></code></pre></div>
+</div>
+<p>You’ll see why I’ve called it ‘open’ in a minute.</p>
+<p>Most users of R understand that if we tried to run <code>open</code>, as is, we would face an error because we haven’t yet defined a value for <code>x</code> within the function body or within the global environment.</p>
+<p>Let’s verify that with a quick call,</p>
+<div class="cell">
+<div class="sourceCode cell-code" id="cb5" style="background: #f1f3f5;"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb5-1"><span class="fu" style="color: #4758AB;">open</span>()</span></code></pre></div>
+<div class="cell-output cell-output-error">
+<pre><code>Error in open(): object 'x' not found</code></pre>
+</div>
+</div>
+<p>This of course changes once we assign a value to the symbol <code>x</code>, say, within the global environment,</p>
+<div class="cell">
+<div class="sourceCode cell-code" id="cb7" style="background: #f1f3f5;"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb7-1">x <span class="ot" style="color: #003B4F;">&lt;-</span> <span class="dv" style="color: #AD0000;">2</span></span>
+<span id="cb7-2"></span>
+<span id="cb7-3"><span class="fu" style="color: #4758AB;">open</span>()</span></code></pre></div>
+<div class="cell-output cell-output-stdout">
+<pre><code>[1] 5</code></pre>
+</div>
+</div>
+<p>The question is: <em>how</em> does <code>open</code> locate a value for the symbol <code>x</code>? I mean, we haven’t defined it inside the function body so how does <code>open</code> ‘jump up’ into the global environment whilst it is executing?</p>
+</section>
+<section id="expressions-closures" class="level2">
+<h2 class="anchored" data-anchor-id="expressions-closures">Expressions &amp; closures</h2>
+<p>Take a look at the following function <code>closed</code>,</p>
+<div class="cell">
+<div class="sourceCode cell-code" id="cb9" style="background: #f1f3f5;"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb9-1">closed <span class="ot" style="color: #003B4F;">&lt;-</span> <span class="cf" style="color: #003B4F;">function</span>(x, y) {</span>
+<span id="cb9-2">  x <span class="sc" style="color: #5E5E5E;">+</span> y</span>
+<span id="cb9-3">}</span></code></pre></div>
+</div>
+<p>This function is a <em>closed</em> expression because each and every symbol that is defined inside the body of <code>g</code> has a corresponding value (supplied as arguments to the parameters <code>x</code> and <code>y</code>).</p>
+<p>By contrast, the aforementioned function <code>open</code> is an <em>open</em> expression,</p>
+<div class="cell">
+<div class="sourceCode cell-code" id="cb10" style="background: #f1f3f5;"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb10-1">open <span class="ot" style="color: #003B4F;">&lt;-</span> <span class="cf" style="color: #003B4F;">function</span>() {</span>
+<span id="cb10-2">  x <span class="sc" style="color: #5E5E5E;">+</span> <span class="dv" style="color: #AD0000;">3</span></span>
+<span id="cb10-3">}</span></code></pre></div>
+</div>
+<p>This is because the symbol <code>x</code> is not defined anywhere within the function itself. We call <code>x</code> a <em>free</em> variable in this context. It needs a value; it needs <em>closure</em>.</p>
+<p>When we created <code>open</code>, we assigned it to the global environment,</p>
+<div class="cell">
+<div class="sourceCode cell-code" id="cb11" style="background: #f1f3f5;"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb11-1">rlang<span class="sc" style="color: #5E5E5E;">::</span><span class="fu" style="color: #4758AB;">env_has</span>(<span class="at" style="color: #657422;">env =</span> .GlobalEnv, <span class="at" style="color: #657422;">nms =</span> <span class="st" style="color: #20794D;">"open"</span>)</span></code></pre></div>
+<div class="cell-output cell-output-stdout">
+<pre><code>open 
+TRUE </code></pre>
+</div>
+</div>
+<p>When you define a function inside a given context (say, the global environment, as we just did), that function will assign and <em>maintain</em> values associated with all of the <em>free</em> variables of that function expression which exist within the surrounding context (and the context surrounding <em>that</em> context and so on, recursively).</p>
+<p>Phew. That’s a lot of words! Let’s look at an example to make this a little easier to understand.</p>
+<p>For example,</p>
+<div class="cell">
+<div class="sourceCode cell-code" id="cb13" style="background: #f1f3f5;"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb13-1">t <span class="ot" style="color: #003B4F;">&lt;-</span> <span class="dv" style="color: #AD0000;">1</span></span>
+<span id="cb13-2">u <span class="ot" style="color: #003B4F;">&lt;-</span> <span class="dv" style="color: #AD0000;">2</span></span>
+<span id="cb13-3">v <span class="ot" style="color: #003B4F;">&lt;-</span> <span class="dv" style="color: #AD0000;">3</span></span>
+<span id="cb13-4">x <span class="ot" style="color: #003B4F;">&lt;-</span> <span class="dv" style="color: #AD0000;">10</span></span>
+<span id="cb13-5"></span>
+<span id="cb13-6">open <span class="ot" style="color: #003B4F;">&lt;-</span> <span class="cf" style="color: #003B4F;">function</span>() {</span>
+<span id="cb13-7">  x <span class="sc" style="color: #5E5E5E;">+</span> <span class="dv" style="color: #AD0000;">3</span></span>
+<span id="cb13-8">}</span></code></pre></div>
+</div>
+<p>In this case, the surrounding environment of <code>open</code> is as follows:</p>
+<div class="cell">
+<div class="sourceCode cell-code" id="cb14" style="background: #f1f3f5;"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb14-1"><span class="co" style="color: #5E5E5E;"># Surrounding context of 'open'</span></span>
+<span id="cb14-2">{</span>
+<span id="cb14-3">  t<span class="sc" style="color: #5E5E5E;">:</span> <span class="dv" style="color: #AD0000;">1</span>,</span>
+<span id="cb14-4">  u<span class="sc" style="color: #5E5E5E;">:</span> <span class="dv" style="color: #AD0000;">2</span>,</span>
+<span id="cb14-5">  v<span class="sc" style="color: #5E5E5E;">:</span> <span class="dv" style="color: #AD0000;">3</span>,</span>
+<span id="cb14-6">  x<span class="sc" style="color: #5E5E5E;">:</span> <span class="dv" style="color: #AD0000;">10</span></span>
+<span id="cb14-7">}</span></code></pre></div>
+</div>
+<p>The <em>closure</em> of <code>open</code> is a subset of this environment: it is the set of key-value pairs which transform <code>open</code> from an <em>open</em> expression into a <em>closed</em> expression. In this case, we only care about <code>x</code>,</p>
+<div class="cell">
+<div class="sourceCode cell-code" id="cb15" style="background: #f1f3f5;"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb15-1"><span class="co" style="color: #5E5E5E;"># Closure of 'open'</span></span>
+<span id="cb15-2">{</span>
+<span id="cb15-3">  x<span class="sc" style="color: #5E5E5E;">:</span> <span class="dv" style="color: #AD0000;">10</span></span>
+<span id="cb15-4">}</span></code></pre></div>
+</div>
+<p>This is what a closure is!</p>
+</section>
+<section id="inner-functions" class="level2">
+<h2 class="anchored" data-anchor-id="inner-functions">Inner functions</h2>
+<p>Let’s go back to our initial problem.</p>
+<p>We have a function <code>f</code> that is defined like so,</p>
+<div class="cell">
+<div class="sourceCode cell-code" id="cb16" style="background: #f1f3f5;"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb16-1"><span class="co" style="color: #5E5E5E;"># Returns another function which has the ability to print the value for the symbol `text`</span></span>
+<span id="cb16-2">f <span class="ot" style="color: #003B4F;">&lt;-</span> <span class="cf" style="color: #003B4F;">function</span>() {</span>
+<span id="cb16-3">  </span>
+<span id="cb16-4">  text <span class="ot" style="color: #003B4F;">&lt;-</span> <span class="st" style="color: #20794D;">"Here!"</span></span>
+<span id="cb16-5">  </span>
+<span id="cb16-6">  <span class="cf" style="color: #003B4F;">function</span>() {</span>
+<span id="cb16-7">    <span class="fu" style="color: #4758AB;">print</span>(text)</span>
+<span id="cb16-8">  }</span>
+<span id="cb16-9">}</span></code></pre></div>
+</div>
+<p>Notice that <code>f</code> returns a <em>function</em> as an output.</p>
+<p>I’m going to assign a name to this inner function to make things a bit easier to explain,</p>
+<div class="cell">
+<div class="sourceCode cell-code" id="cb17" style="background: #f1f3f5;"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb17-1"><span class="co" style="color: #5E5E5E;"># Returns another function which has the ability to print the value for the symbol `text`</span></span>
+<span id="cb17-2">f <span class="ot" style="color: #003B4F;">&lt;-</span> <span class="cf" style="color: #003B4F;">function</span>() {</span>
+<span id="cb17-3">  </span>
+<span id="cb17-4">  text <span class="ot" style="color: #003B4F;">&lt;-</span> <span class="st" style="color: #20794D;">"Here!"</span></span>
+<span id="cb17-5">  </span>
+<span id="cb17-6">  inner <span class="ot" style="color: #003B4F;">&lt;-</span> <span class="cf" style="color: #003B4F;">function</span>() {</span>
+<span id="cb17-7">    <span class="fu" style="color: #4758AB;">print</span>(text)</span>
+<span id="cb17-8">  }</span>
+<span id="cb17-9">  </span>
+<span id="cb17-10">  <span class="fu" style="color: #4758AB;">return</span>(inner)</span>
+<span id="cb17-11">}</span></code></pre></div>
+</div>
+<p>The important thing to note here, once again, is that the <code>inner</code> function is not <em>executed</em>, but is instead <em>defined</em> when <code>f</code> is called. So think of ‘call <code>f</code>’ and ‘define <code>inner</code>’ as being equivalent statements.</p>
+<p>When you run <code>f()</code>, here’s what happens.</p>
+<p>First, you create another function (which I have just named <code>print_text</code>),</p>
+<div class="cell">
+<div class="sourceCode cell-code" id="cb18" style="background: #f1f3f5;"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb18-1">print_text <span class="ot" style="color: #003B4F;">&lt;-</span> <span class="fu" style="color: #4758AB;">f</span>()</span>
+<span id="cb18-2"></span>
+<span id="cb18-3">print_text</span></code></pre></div>
+<div class="cell-output cell-output-stdout">
+<pre><code>function() {
+    print(text)
+  }
+&lt;environment: 0x12004e7b8&gt;</code></pre>
+</div>
+</div>
+<p>However, something else also happens behind the scenes which you don’t see: upon definition, the inner function creates a <em>snapshot</em> of the free variables (i.e.&nbsp;<code>text</code>) in its surrounding context,</p>
+<div class="cell">
+<div class="sourceCode cell-code" id="cb20" style="background: #f1f3f5;"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb20-1">{</span>
+<span id="cb20-2">  text<span class="sc" style="color: #5E5E5E;">:</span> <span class="st" style="color: #20794D;">"Here!"</span></span>
+<span id="cb20-3">}</span></code></pre></div>
+</div>
+<p>In effect, the inner function ‘encloses’ its surrounding context.</p>
+<p>This is the <em>closure</em> of <code>inner</code> and this is how <code>inner</code> gets a value for <code>text</code>. This value is maintained even after <code>f</code> finishes executing.</p>
+</section>
+<section id="lexical-scope-versus-dynamic-scope" class="level2">
+<h2 class="anchored" data-anchor-id="lexical-scope-versus-dynamic-scope">Lexical scope versus dynamic scope</h2>
+<p>The concept of closures is closely related to the concept of lexical scope.</p>
+<p>Let’s do a full reprise and bring <code>g</code> back into the equation,</p>
+<div class="cell">
+<div class="sourceCode cell-code" id="cb21" style="background: #f1f3f5;"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb21-1">f <span class="ot" style="color: #003B4F;">&lt;-</span> <span class="cf" style="color: #003B4F;">function</span>() {</span>
+<span id="cb21-2">  </span>
+<span id="cb21-3">  text <span class="ot" style="color: #003B4F;">&lt;-</span> <span class="st" style="color: #20794D;">"Here!"</span></span>
+<span id="cb21-4">  </span>
+<span id="cb21-5">  inner <span class="ot" style="color: #003B4F;">&lt;-</span> <span class="cf" style="color: #003B4F;">function</span>() {</span>
+<span id="cb21-6">    <span class="fu" style="color: #4758AB;">print</span>(text)</span>
+<span id="cb21-7">  }</span>
+<span id="cb21-8">  </span>
+<span id="cb21-9">  <span class="fu" style="color: #4758AB;">return</span>(inner)</span>
+<span id="cb21-10">}</span>
+<span id="cb21-11"></span>
+<span id="cb21-12">g <span class="ot" style="color: #003B4F;">&lt;-</span> <span class="cf" style="color: #003B4F;">function</span>() {</span>
+<span id="cb21-13">  </span>
+<span id="cb21-14">  text <span class="ot" style="color: #003B4F;">&lt;-</span> <span class="st" style="color: #20794D;">"There!"</span></span>
+<span id="cb21-15">  </span>
+<span id="cb21-16">  print_text <span class="ot" style="color: #003B4F;">&lt;-</span> <span class="fu" style="color: #4758AB;">f</span>()</span>
+<span id="cb21-17">  <span class="fu" style="color: #4758AB;">print_text</span>()</span>
+<span id="cb21-18">}</span></code></pre></div>
+</div>
+<p>We now know that when we call <code>f</code> - and create <code>inner</code> - a closure is created for the <code>inner</code> function which allows it to lookup the value of <code>text</code>, “Here!”, when it is invoked.</p>
+<p>In other words, the <code>inner</code> function binds values to its ‘free’ symbols according to <em>where</em> it is defined in the source code itself (this is lexical scoping). It does <em>not</em>, by contrast, bind its values based on how it is called (this is dynamic scoping).</p>
+<p>The word ‘lexical’ is used because it is indicative of text or source code. The word ‘dynamic’ is used because it is indicative of a ‘runtime’ definition.</p>
+<p>To relate this to the example above,</p>
+<div class="cell">
+<div class="sourceCode cell-code" id="cb22" style="background: #f1f3f5;"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb22-1"><span class="fu" style="color: #4758AB;">g</span>() <span class="co" style="color: #5E5E5E;"># lexical scope - R does this</span></span></code></pre></div>
+<div class="cell-output cell-output-stdout">
+<pre><code>[1] "Here!"</code></pre>
+</div>
+</div>
+<div class="cell">
+<div class="sourceCode cell-code" id="cb24" style="background: #f1f3f5;"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb24-1"><span class="fu" style="color: #4758AB;">g</span>() <span class="co" style="color: #5E5E5E;"># dynamic scope - R does not do this</span></span></code></pre></div>
+<div class="cell-output cell-output-stdout">
+<pre><code>[1] "There!"</code></pre>
+</div>
+</div>
+<p>The latter would be an implementation of dynamic scope because, if the variable <code>text</code> were scoped at runtime rather than where it was defined in the source code, it would simply look at the call stack (rather than the ‘definition stack’ if that’s even a word) and see <code>text &lt;- "There!"</code>.</p>
+</section>
+<section id="why-is-this-cool" class="level2">
+<h2 class="anchored" data-anchor-id="why-is-this-cool">Why is this cool?</h2>
+<p>OK, so why does this even matter as a concept? Well, for one you now understanding something better than you did before: is the intrinsic joy of learning not enough for you?</p>
+<p>If you’re looking for a cool application, run over to <a href="https://adv-r.hadley.nz/function-factories.html#stateful-funs">this chapter</a> of Hadley Wickham’s book Advanced R to see how you can create a function which counts how many times it has been called!</p>
+
+
+</section>
+
+ ]]></description>
+  <category>programming</category>
+  <category>R</category>
+  <category>functional-programming</category>
+  <guid>https://non-std-dev.netlify.app/posts/closures/index.html</guid>
+  <pubDate>Fri, 18 Feb 2022 00:00:00 GMT</pubDate>
+</item>
+</channel>
+</rss>

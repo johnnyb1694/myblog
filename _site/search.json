@@ -1,42 +1,42 @@
 [
   {
-    "objectID": "posts/closures/closures.html",
-    "href": "posts/closures/closures.html",
+    "objectID": "posts/closures/index.html",
+    "href": "posts/closures/index.html",
     "title": "Closures",
     "section": "",
     "text": "Another day goes by and another poor sod finds themselves trawling through Google to figure out what on earth a closure is.\nWell, I say that as if this is some kind of ‘hot’ topic in the #rstats community: it’s not. If anything it’s ‘hot’ for all the wrong reasons: we’ve all come across the error ‘object of type closure is not subsettable’ before.\nYou can be a very capable data scientist and have no clue what a closure is. But, I actually like this stuff. Plus, this concept is something that is shared amongst other popular programming languages like JavaScript, Swift and Ruby so it’s kind of useful to know what it is.\nSo, presuming you’re not bored yet and still wondering what I’m on about, have a little look at the following code snippet and have a little think about what would happen if I called g. Try to think about it yourself before scrolling further!\nHave you thought about it yet?\nGood. OK: here goes nothing!\nBoom. Now, if you aren’t a regular user of R this behaviour could be quite bemusing. For instance, we have defined two values for the symbol text: how does R select one of them?\nEven if you are a regular user of R, you may still be wondering how to explain this. And you wouldn’t really be able to without first understanding the concept of closures and lexical scope. So let me attempt to elucidate things for you slightly :wink:"
   },
   {
-    "objectID": "posts/closures/closures.html#a-simple-example",
-    "href": "posts/closures/closures.html#a-simple-example",
+    "objectID": "posts/closures/index.html#a-simple-example",
+    "href": "posts/closures/index.html#a-simple-example",
     "title": "Closures",
     "section": "A simple example",
     "text": "A simple example\nThe example shown above is a little bit complicated.\nSo let’s start with something really simple and build up the complexity as we go. First, take a look at this function\n\nopen <- function() {\n  x + 3\n}\n\nYou’ll see why I’ve called it ‘open’ in a minute.\nMost users of R understand that if we tried to run open, as is, we would face an error because we haven’t yet defined a value for x within the function body or within the global environment.\nLet’s verify that with a quick call,\n\nopen()\n\nError in open(): object 'x' not found\n\n\nThis of course changes once we assign a value to the symbol x, say, within the global environment,\n\nx <- 2\n\nopen()\n\n[1] 5\n\n\nThe question is: how does open locate a value for the symbol x? I mean, we haven’t defined it inside the function body so how does open ‘jump up’ into the global environment whilst it is executing?"
   },
   {
-    "objectID": "posts/closures/closures.html#expressions-closures",
-    "href": "posts/closures/closures.html#expressions-closures",
+    "objectID": "posts/closures/index.html#expressions-closures",
+    "href": "posts/closures/index.html#expressions-closures",
     "title": "Closures",
     "section": "Expressions & closures",
     "text": "Expressions & closures\nTake a look at the following function closed,\n\nclosed <- function(x, y) {\n  x + y\n}\n\nThis function is a closed expression because each and every symbol that is defined inside the body of g has a corresponding value (supplied as arguments to the parameters x and y).\nBy contrast, the aforementioned function open is an open expression,\n\nopen <- function() {\n  x + 3\n}\n\nThis is because the symbol x is not defined anywhere within the function itself. We call x a free variable in this context. It needs a value; it needs closure.\nWhen we created open, we assigned it to the global environment,\n\nrlang::env_has(env = .GlobalEnv, nms = \"open\")\n\nopen \nTRUE \n\n\nWhen you define a function inside a given context (say, the global environment, as we just did), that function will assign and maintain values associated with all of the free variables of that function expression which exist within the surrounding context (and the context surrounding that context and so on, recursively).\nPhew. That’s a lot of words! Let’s look at an example to make this a little easier to understand.\nFor example,\n\nt <- 1\nu <- 2\nv <- 3\nx <- 10\n\nopen <- function() {\n  x + 3\n}\n\nIn this case, the surrounding environment of open is as follows:\n\n# Surrounding context of 'open'\n{\n  t: 1,\n  u: 2,\n  v: 3,\n  x: 10\n}\n\nThe closure of open is a subset of this environment: it is the set of key-value pairs which transform open from an open expression into a closed expression. In this case, we only care about x,\n\n# Closure of 'open'\n{\n  x: 10\n}\n\nThis is what a closure is!"
   },
   {
-    "objectID": "posts/closures/closures.html#inner-functions",
-    "href": "posts/closures/closures.html#inner-functions",
+    "objectID": "posts/closures/index.html#inner-functions",
+    "href": "posts/closures/index.html#inner-functions",
     "title": "Closures",
     "section": "Inner functions",
-    "text": "Inner functions\nLet’s go back to our initial problem.\nWe have a function f that is defined like so,\n\n# Returns another function which has the ability to print the value for the symbol `text`\nf <- function() {\n  \n  text <- \"Here!\"\n  \n  function() {\n    print(text)\n  }\n}\n\nNotice that f returns a function as an output.\nI’m going to assign a name to this inner function to make things a bit easier to explain,\n\n# Returns another function which has the ability to print the value for the symbol `text`\nf <- function() {\n  \n  text <- \"Here!\"\n  \n  inner <- function() {\n    print(text)\n  }\n  \n  return(inner)\n}\n\nThe important thing to note here, once again, is that the inner function is not executed, but is instead defined when f is called. So think of ‘call f’ and ‘define inner’ as being equivalent statements.\nWhen you run f(), here’s what happens.\nFirst, you create another function (which I have just named print_text),\n\nprint_text <- f()\n\nprint_text\n\nfunction() {\n    print(text)\n  }\n<environment: 0x1048d2038>\n\n\nHowever, something else also happens behind the scenes which you don’t see: upon definition, the inner function creates a snapshot of the free variables (i.e. text) in its surrounding context,\n\n{\n  text: \"Here!\"\n}\n\nIn effect, the inner function ‘encloses’ its surrounding context.\nThis is the closure of inner and this is how inner gets a value for text. This value is maintained even after f finishes executing."
+    "text": "Inner functions\nLet’s go back to our initial problem.\nWe have a function f that is defined like so,\n\n# Returns another function which has the ability to print the value for the symbol `text`\nf <- function() {\n  \n  text <- \"Here!\"\n  \n  function() {\n    print(text)\n  }\n}\n\nNotice that f returns a function as an output.\nI’m going to assign a name to this inner function to make things a bit easier to explain,\n\n# Returns another function which has the ability to print the value for the symbol `text`\nf <- function() {\n  \n  text <- \"Here!\"\n  \n  inner <- function() {\n    print(text)\n  }\n  \n  return(inner)\n}\n\nThe important thing to note here, once again, is that the inner function is not executed, but is instead defined when f is called. So think of ‘call f’ and ‘define inner’ as being equivalent statements.\nWhen you run f(), here’s what happens.\nFirst, you create another function (which I have just named print_text),\n\nprint_text <- f()\n\nprint_text\n\nfunction() {\n    print(text)\n  }\n<environment: 0x12004e7b8>\n\n\nHowever, something else also happens behind the scenes which you don’t see: upon definition, the inner function creates a snapshot of the free variables (i.e. text) in its surrounding context,\n\n{\n  text: \"Here!\"\n}\n\nIn effect, the inner function ‘encloses’ its surrounding context.\nThis is the closure of inner and this is how inner gets a value for text. This value is maintained even after f finishes executing."
   },
   {
-    "objectID": "posts/closures/closures.html#lexical-scope-versus-dynamic-scope",
-    "href": "posts/closures/closures.html#lexical-scope-versus-dynamic-scope",
+    "objectID": "posts/closures/index.html#lexical-scope-versus-dynamic-scope",
+    "href": "posts/closures/index.html#lexical-scope-versus-dynamic-scope",
     "title": "Closures",
     "section": "Lexical scope versus dynamic scope",
     "text": "Lexical scope versus dynamic scope\nThe concept of closures is closely related to the concept of lexical scope.\nLet’s do a full reprise and bring g back into the equation,\n\nf <- function() {\n  \n  text <- \"Here!\"\n  \n  inner <- function() {\n    print(text)\n  }\n  \n  return(inner)\n}\n\ng <- function() {\n  \n  text <- \"There!\"\n  \n  print_text <- f()\n  print_text()\n}\n\nWe now know that when we call f - and create inner - a closure is created for the inner function which allows it to lookup the value of text, “Here!”, when it is invoked.\nIn other words, the inner function binds values to its ‘free’ symbols according to where it is defined in the source code itself (this is lexical scoping). It does not, by contrast, bind its values based on how it is called (this is dynamic scoping).\nThe word ‘lexical’ is used because it is indicative of text or source code. The word ‘dynamic’ is used because it is indicative of a ‘runtime’ definition.\nTo relate this to the example above,\n\ng() # lexical scope - R does this\n\n[1] \"Here!\"\n\n\n\ng() # dynamic scope - R does not do this\n\n[1] \"There!\"\n\n\nThe latter would be an implementation of dynamic scope because, if the variable text were scoped at runtime rather than where it was defined in the source code, it would simply look at the call stack (rather than the ‘definition stack’ if that’s even a word) and see text <- \"There!\"."
   },
   {
-    "objectID": "posts/closures/closures.html#why-is-this-cool",
-    "href": "posts/closures/closures.html#why-is-this-cool",
+    "objectID": "posts/closures/index.html#why-is-this-cool",
+    "href": "posts/closures/index.html#why-is-this-cool",
     "title": "Closures",
     "section": "Why is this cool?",
     "text": "Why is this cool?\nOK, so why does this even matter as a concept? Well, for one you now understanding something better than you did before: is the intrinsic joy of learning not enough for you?\nIf you’re looking for a cool application, run over to this chapter of Hadley Wickham’s book Advanced R to see how you can create a function which counts how many times it has been called!"
@@ -44,15 +44,15 @@
   {
     "objectID": "index.html",
     "href": "index.html",
-    "title": "Home",
+    "title": "Posts",
     "section": "",
-    "text": "programming\n\n\nR\n\n\nfunctional-programming\n\n\n\n\n\n\n\n\n\n\n\nFeb 18, 2022\n\n\nJohnny Breen\n\n\n\n\n\n\nNo matching items"
+    "text": "Order By\n       Default\n         \n          Title\n        \n         \n          Date - Oldest\n        \n         \n          Date - Newest\n        \n         \n          Author\n        \n     \n  \n    \n      \n      \n    \n\n\n\n\n\n\nClosures\n\n\n\n\n\n\n\nprogramming\n\n\nR\n\n\nfunctional-programming\n\n\n\n\n\n\n\n\n\n\n\nFeb 18, 2022\n\n\nJohnny Breen\n\n\n\n\n\n\nNo matching items"
   },
   {
     "objectID": "about.html",
     "href": "about.html",
     "title": "About",
     "section": "",
-    "text": "My name is Johnny Breen and I currently work as a Portfolio Optimisation Lead at Tokio Marine Kiln, London. When I'm not rambling on here you can find me on Twitter and GitHub (occasionally: I'm not that hardcore) 😉"
+    "text": "My name is Johnny Breen and I currently work as a Portfolio Optimisation Lead at Tokio Marine Kiln, London. When I’m not rambling on here you can find me on Twitter and GitHub (occasionally: I’m not that hardcore) 😉"
   }
 ]

@@ -1,0 +1,15 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9">
+  <url>
+    <loc>https://non-std-dev.netlify.app/posts/closures/index.html</loc>
+    <lastmod>2022-08-06T14:48:22.086Z</lastmod>
+  </url>
+  <url>
+    <loc>https://non-std-dev.netlify.app/index.html</loc>
+    <lastmod>2022-08-06T14:48:22.425Z</lastmod>
+  </url>
+  <url>
+    <loc>https://non-std-dev.netlify.app/about.html</loc>
+    <lastmod>2022-08-06T14:48:22.724Z</lastmod>
+  </url>
+</urlset>
