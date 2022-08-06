@@ -1,19 +1,19 @@
 ---
 title: "About"
-image: profile.jpg
+image: avatar.jpg
 about:
   template: jolla
+  image-width: 15em
   links:
     - icon: twitter
       text: Twitter
-      href: https://twitter.com
+      href: https://twitter.com/johnnyb1694
     - icon: linkedin
       text: LinkedIn
-      href: https://linkedin.com
+      href: https://www.linkedin.com/in/johnnybreen/
     - icon: github
       text: Github
-      href: https://github.com
-
+      href: https://github.com/johnnyb1694
 ---
 
-About this blog
+My name is Johnny Breen and I currently work as a Portfolio Optimisation Lead at Tokio Marine Kiln, London. When I\'m not rambling on here you can find me on [Twitter](https://twitter.com/johnnyb1694) and [GitHub](https://github.com/johnnyb1694) (occasionally: I\'m not that hardcore) 😉

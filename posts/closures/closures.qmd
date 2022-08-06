@@ -1,0 +1,265 @@
+---
+title: Closures
+author: Johnny Breen
+date: '2022-02-18'
+format: html
+categories: [programming, R, functional-programming]
+---
+
+Another day goes by and another poor sod finds themselves trawling through Google to figure out what on earth a closure is.
+
+Well, I say that as if this is some kind of 'hot' topic in the [#rstats](https://twitter.com/search?q=%23rstats&src=typed_query) community: it's not. If anything it's 'hot' for all the wrong reasons: we've all come across the error 'object of type closure is  not subsettable' before.
+
+You can be a very capable data scientist and have no clue what a closure is. But, I actually *like* this stuff. Plus, this concept is something that is shared amongst other popular programming languages like JavaScript, Swift and Ruby so it's kind of useful to know what it is.
+
+So, presuming you're not bored yet and still wondering what I'm on about, have a little look at the following code snippet and have a little think about what would happen if I called `g`. Try to think about it yourself before scrolling further!
+
+```{r}
+# Returns another function which has the ability to print the value for the symbol `text`
+f <- function() {
+  
+  text <- "Here!"
+  
+  function() {
+    print(text)
+  }
+}
+
+# Returns a call to the function returned by `f()` (above)
+g <- function() {
+  
+  text <- "There!"
+  
+  print_text <- f()
+  print_text()
+}
+```
+
+Have you thought about it yet?
+
+Good. OK: here goes nothing!
+
+```{r}
+g()
+```
+
+Boom. Now, if you aren't a regular user of R this behaviour could be quite bemusing. For instance, we have defined two values for the symbol `text`: how does R select one of them?
+
+Even if you are a regular user of R, you may still be wondering *how* to explain this. And you wouldn't really be able to without first understanding the concept of closures and lexical scope. So let me attempt to elucidate things for you slightly :wink:
+
+## A simple example
+
+The example shown above is a little bit complicated.
+
+So let's start with something really simple and build up the complexity as we go. First, take a look at this function
+
+```{r}
+open <- function() {
+  x + 3
+}
+```
+
+You'll see why I've called it 'open' in a minute.
+
+Most users of R understand that if we tried to run `open`, as is, we would face an error because we haven't yet defined a value for `x` within the function body or within the global environment.
+
+Let's verify that with a quick call,
+
+```{r error=TRUE}
+open()
+```
+
+This of course changes once we assign a value to the symbol `x`, say, within the global environment,
+
+```{r}
+x <- 2
+
+open()
+```
+
+The question is: *how* does `open` locate a value for the symbol `x`? I mean, we haven't defined it inside the function body so how does `open` 'jump up' into the global environment whilst it is executing?
+
+## Expressions & closures
+
+Take a look at the following function `closed`,
+
+```{r}
+closed <- function(x, y) {
+  x + y
+}
+```
+
+This function is a *closed* expression because each and every symbol that is defined inside the body of `g` has a corresponding value (supplied as arguments to the parameters `x` and `y`).
+
+By contrast, the aforementioned function `open` is an *open* expression,
+
+```{r}
+open <- function() {
+  x + 3
+}
+```
+
+This is because the symbol `x` is not defined anywhere within the function itself. We call `x` a *free* variable in this context. It needs a value; it needs *closure*.
+
+When we created `open`, we assigned it to the global environment,
+
+```{r}
+rlang::env_has(env = .GlobalEnv, nms = "open")
+```
+
+When you define a function inside a given context (say, the global environment, as we just did), that function will assign and *maintain* values associated with all of the *free* variables of that function expression which exist within the surrounding context (and the context surrounding *that* context and so on, recursively).
+
+Phew. That's a lot of words! Let's look at an example to make this a little easier to understand.
+
+For example,
+
+```{r}
+t <- 1
+u <- 2
+v <- 3
+x <- 10
+
+open <- function() {
+  x + 3
+}
+```
+
+In this case, the surrounding environment of `open` is as follows:
+
+```{r eval=FALSE}
+# Surrounding context of 'open'
+{
+  t: 1,
+  u: 2,
+  v: 3,
+  x: 10
+}
+```
+
+The *closure* of `open` is a subset of this environment: it is the set of key-value pairs which transform `open` from an *open* expression into a *closed* expression. In this case, we only care about `x`,
+
+```{r eval=FALSE}
+# Closure of 'open'
+{
+  x: 10
+}
+```
+
+This is what a closure is!
+
+## Inner functions
+
+Let's go back to our initial problem.
+
+We have a function `f` that is defined like so,
+
+```{r}
+# Returns another function which has the ability to print the value for the symbol `text`
+f <- function() {
+  
+  text <- "Here!"
+  
+  function() {
+    print(text)
+  }
+}
+```
+
+Notice that `f` returns a *function* as an output.
+
+I'm going to assign a name to this inner function to make things a bit easier to explain,
+
+```{r}
+# Returns another function which has the ability to print the value for the symbol `text`
+f <- function() {
+  
+  text <- "Here!"
+  
+  inner <- function() {
+    print(text)
+  }
+  
+  return(inner)
+}
+```
+
+The important thing to note here, once again, is that the `inner` function is not *executed*, but is instead *defined* when `f` is called. So think of 'call `f`' and 'define `inner`' as being equivalent statements.
+
+When you run `f()`, here's what happens.
+
+First, you create another function (which I have just named `print_text`),
+
+```{r}
+print_text <- f()
+
+print_text
+```
+
+However, something else also happens behind the scenes which you don't see: upon definition, the inner function creates a *snapshot* of the free variables (i.e. `text`) in its surrounding context,
+
+```{r eval=FALSE}
+{
+  text: "Here!"
+}
+```
+
+In effect, the inner function 'encloses' its surrounding context.
+
+This is the *closure* of `inner` and this is how `inner` gets a value for `text`. This value is maintained even after `f` finishes executing.
+
+## Lexical scope versus dynamic scope
+
+The concept of closures is closely related to the concept of lexical scope.
+
+Let's do a full reprise and bring `g` back into the equation,
+
+```{r}
+f <- function() {
+  
+  text <- "Here!"
+  
+  inner <- function() {
+    print(text)
+  }
+  
+  return(inner)
+}
+
+g <- function() {
+  
+  text <- "There!"
+  
+  print_text <- f()
+  print_text()
+}
+```
+
+We now know that when we call `f` - and create `inner` - a closure is created for the `inner` function which allows it to lookup the value of `text`, "Here!", when it is invoked.
+
+In other words, the `inner` function binds values to its 'free' symbols according to *where* it is defined in the source code itself (this is lexical scoping). It does *not*, by contrast, bind its values based on how it is called (this is dynamic scoping).
+
+The word 'lexical' is used because it is indicative of text or source code. The word 'dynamic' is used because it is indicative of a 'runtime' definition.
+
+To relate this to the example above,
+
+```{r}
+g() # lexical scope - R does this
+```
+
+```{r include=FALSE}
+g <- function() {
+  print("There!")
+}
+```
+
+```{r}
+g() # dynamic scope - R does not do this
+```
+
+The latter would be an implementation of dynamic scope because, if the variable `text` were scoped at runtime rather than where it was defined in the source code, it would simply look at the call stack (rather than the 'definition stack' if that's even a word) and see `text <- "There!"`.
+
+## Why is this cool?
+
+OK, so why does this even matter as a concept? Well, for one you now understanding something better than you did before: is the intrinsic joy of learning not enough for you?
+
+If you're looking for a cool application, run over to [this chapter](https://adv-r.hadley.nz/function-factories.html#stateful-funs) of Hadley Wickham's book Advanced R to see how you can create a function which counts how many times it has been called!
