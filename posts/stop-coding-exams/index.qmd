@@ -1,0 +1,47 @@
+---
+title: Stop with coding exams
+author: Johnny Breen
+date: '2022-08-18'
+format: html
+categories: [general,software,training,teaching]
+---
+
+You may be wondering what the point of this blog post is. Well, I've been bottling this frustration up for years now.
+
+I want to start by telling you a little (intentionally vague) story about me: I didn't start out as a 'data scientist' (I'm still not, technically, a 'data scientist' but hey-ho). I started out training to be.. a professional of a certain caliber, in the insurance industry, as part of an organisation that shan't be named.. 🙄
+
+Excuse these vagaries: those who know me will know what I am talking about; uttering the name of *that* organisation (they shall be known as 'The Organisation' henceforth) in a public blog post is apparently tantamount to exclaiming the words 'Voldemort' in Hogwarts. Anyway, I digress.
+
+As part of my membership of this organisation I had to partake in exams, some of which required us to write code using R. Me being the R hobbyist that I always have been, I interpreted this move as a good one initially. Isn't it great that the use of R is being expanded in the insurance industry?
+
+Well it *would* be if it was done right. Unfortunately, the execution has been less than impressive.
+
+You see, there's the right way to do this and the wrong way to do this. Then there's the really wrong way to do this, which is unfortunately the route 'they' went down when they wrote this syllabus.
+
+They decided: "You know what, we'll ask them to write answers using code.. in a word document because god forbid you start using R Markdown for its intended purpose!"
+
+"Oh, while you're at it, why don't you also examine them on how many function names they can remember from standard libraries (because you don't *do* third-party packages, do you..). That way, they're *sure* to improve their programming skills, right?"
+
+OK, I am being facetious but you get the idea! No, this is clearly the *wrong* way to go about all of this and I am truly saddened to say this because I really believed that this could work. Truly. But it hasn't and now a generation of analysts are suffering as a result.
+
+# Why this is a problem
+
+You see, when I first learnt how to write code, I didn't really learn how to *write code*.
+
+I learnt how to solve a problem using code as a tool. This was good to some degree - there's a lot of satisfaction in solving a problem using code. But it was also bad for reasons I would not have been able to perceive at the time.
+
+See, there's an astronomical difference between writing code for yourself, and writing code for other people (including your future self). In industry, we often do the latter not the former which means that code quality and organisation is paramount.
+
+But if you're sitting a timed exam where 'getting the answer' is the most important goal then you have absolutely no incentive to improve your code quality. What are we doing to our industry by teaching these heuristics to a whole generation of analysts? Nothing good, that's for sure.
+
+You think you're learning how to write good programs; but what you're actually doing is assembling sushi with a sledgehammer.
+
+The Organisation claim that it would be prohibitive to allow analysts more time to complete their answers or, god forbid, submit a hard-fought personal project instead. There are concerns that this would compromise standards, 'high standards' they have maintained for almost a century.
+
+I'm actually a fan of the coursework approach. I'm also a fan of not grading the coursework either; just require candidates to do their best and come up with an interesting angle on an appropriate schema of data using R or Python and issue a simple 'Pass' or 'Fail'. I can guarantee that whilst this approach may be more effort to mark (ahem, pay your markers a fair wage please), candidates will come away with a much greater understanding of how to write code than they ever would have via an examination format.
+
+I can already hear the retort though: : "Well, we can't let them submit their own coursework.. what about plagiarism?"
+
+My response to this is, well, what about it? You're supposed to be teaching people how to be better software developers; you're not *just* here to maintain absolute standards. If 5% of candidates commit plagiarism, you can be sure they haven't learnt anything. It's their loss and you should accept that these anomalies may slip through the cracks.
+
+The other 95% however? They will benefit immensely from a chance to implement their skills in a personal project, regardless of what grade they are given - certainly far more than having to sit through a dull litany of R commands and reciting them to the RStudio console when the exam comes around.

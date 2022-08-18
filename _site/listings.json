@@ -2,6 +2,7 @@
   {
     "listing": "/index.html",
     "items": [
+      "/posts/stop-coding-exams/index.html",
       "/posts/closures/index.html"
     ]
   }
