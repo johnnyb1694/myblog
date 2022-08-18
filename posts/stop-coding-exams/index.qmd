@@ -16,7 +16,7 @@ You see, there's an astronomical difference between writing code for yourself, a
 
 But if you're sitting a timed exam where 'getting the answer' is the most important goal then you understandably have no incentive to improve your code quality. Without wanting to compromise standards too much though, I happen to believe that this approach is sub-optimal.
 
-Personally, I am also a fan of a coursework-based approach (I'm also a fan of not grading the coursework either). If we simply require candidates to do their best and come up with an interesting angle on an appropriate schema of data using R or Python and issue a simple 'Pass' or 'Fail', then I can guarantee that they will learn something useful.
+Personally, I am a fan of a coursework-based approach (I'm also a fan of not grading the coursework either). If we simply require candidates to do their best and come up with an interesting angle on an appropriate schema of data using R or Python and issue a simple 'Pass' or 'Fail', then I can guarantee that they will learn something useful.
 
 Yes, it will be more difficult to mark, but candidates will come away with a much greater understanding of how to write code than they ever would have via an examination format.
 
