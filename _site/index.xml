@@ -10,7 +10,124 @@
 <atom:link href="https://non-std-dev.netlify.app/index.xml" rel="self" type="application/rss+xml"/>
 <description>Johnny Breen's blog.</description>
 <generator>quarto-1.0.38</generator>
-<lastBuildDate>Wed, 17 Aug 2022 23:00:00 GMT</lastBuildDate>
+<lastBuildDate>Sat, 20 Aug 2022 23:00:00 GMT</lastBuildDate>
+<item>
+  <title>Context managers (and why they’re great)</title>
+  <dc:creator>Johnny Breen</dc:creator>
+  <link>https://non-std-dev.netlify.app/posts/context-manage/index.html</link>
+  <description><![CDATA[ 
+
+
+
+
+<p>So listen: to be a ‘good’ data analyst you don’t need to know the ins and outs of software engineering. That would be a bit ridiculous.</p>
+<p>That said, there are some software engineering ‘best practices’ that you should cherry-pick, if you will, and adopt into your workflow. And here comes my bold statement: I firmly believe that the idea of managing ‘resources’ is one such practice. I know, I know.. ‘managing resources’? You may as well be a librarian.</p>
+<p>But hear me out: you probably rely on tonnes of ‘resources’ to do your daily work without even realising it. What is your management strategy?</p>
+<p>Sorry, I’m getting a bit ahead of myself here. Let’s start with the most fundamental question: what do we mean by the word ‘resource’ exactly?</p>
+<section id="resources-explained" class="level1">
+<h1>Resources explained</h1>
+<p>Suppose you are writing a program which logs result of each operation to a <code>.txt</code> file on disk. Something like this (NB: use Python’s native <code>logger</code> module to perform logging; not what follows!):</p>
+<div class="cell" data-execution_count="1">
+<div class="sourceCode cell-code" id="cb1" style="background: #f1f3f5;"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb1-1"><span class="kw" style="color: #003B4F;">def</span> divide(x, y):</span>
+<span id="cb1-2">  logger_file <span class="op" style="color: #5E5E5E;">=</span> <span class="bu" style="color: null;">open</span>(<span class="st" style="color: #20794D;">'app.log'</span>, <span class="st" style="color: #20794D;">'a'</span>)</span>
+<span id="cb1-3">  logger_file.write(<span class="ss" style="color: #20794D;">f'Adding </span><span class="sc" style="color: #5E5E5E;">{</span>x<span class="sc" style="color: #5E5E5E;">}</span><span class="ss" style="color: #20794D;"> and </span><span class="sc" style="color: #5E5E5E;">{</span>y<span class="sc" style="color: #5E5E5E;">}</span><span class="ss" style="color: #20794D;">...'</span>)</span>
+<span id="cb1-4">  z <span class="op" style="color: #5E5E5E;">=</span> x <span class="op" style="color: #5E5E5E;">/</span> y</span>
+<span id="cb1-5">  logger_file.close()</span>
+<span id="cb1-6">  <span class="cf" style="color: #003B4F;">return</span> z</span></code></pre></div>
+</div>
+<p>Your computer can’t just <em>write</em> this call to the file straight away. If you think about it, a few steps have to happen first:</p>
+<ol type="1">
+<li>If this file is hosted on another machine, your machine needs to gain access to the other machine (and potentially requires authentication)</li>
+<li>Then, pending success on step 1, a connection to this file must be opened</li>
+<li>Data is then written into the file via the connection channel</li>
+<li>Finally, on the <em>attempt</em> of step 2 (regardless of success or failure), the connection to the file should be closed</li>
+</ol>
+<p>In this context, your ‘resource’ is the logging file <code>app.log</code>; more formally, a ‘resource’ is a piece of software or hardware that is accessed and manipulated over a network. And, as you can see in the above, you need to <em>manage</em> this resource to avoid complications later down the line.</p>
+<p>What kind of complications am I speaking of? Most data analysts will be able to execute steps 1-3 successfully (because, well, they <em>have</em> to). But, again and again, I see far too many analysts fail to carry out step 4, which is the most important step.</p>
+</section>
+<section id="how-things-can-go-wrong" class="level1">
+<h1>How things can go wrong</h1>
+<p>The question you have to ask yourself here is what if the step in between <code>open()</code> and <code>close()</code> fails? In other words, what if <code>z = x / y</code> fails? Well, it will at some point because I have news for you: you can’t divide by zero,</p>
+<div class="cell" data-execution_count="2">
+<div class="sourceCode cell-code" id="cb2" style="background: #f1f3f5;"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb2-1"><span class="cf" style="color: #003B4F;">try</span>:</span>
+<span id="cb2-2">  divide(<span class="dv" style="color: #AD0000;">5</span>, <span class="dv" style="color: #AD0000;">0</span>)</span>
+<span id="cb2-3"><span class="cf" style="color: #003B4F;">except</span> <span class="pp" style="color: #AD0000;">ZeroDivisionError</span> <span class="im" style="color: #00769E;">as</span> err:</span>
+<span id="cb2-4">  <span class="bu" style="color: null;">print</span>(err)</span></code></pre></div>
+<div class="cell-output cell-output-stdout">
+<pre><code>division by zero</code></pre>
+</div>
+</div>
+<p>Think about the control flow of our function <code>divide()</code> for a second: once it encounters an error, it will not close the file. Execution will terminate and the connection to our file will be left open. This is not an issue with a small number of connections but imagine that you are running this call, repeatedly, millions of times. There is a cost to maintaining millions of open connections: memory leakage.</p>
+<p>We are using a contrived example to demonstrate the point here. This issue becomes much more pertinent when interacting with remote database systems.</p>
+</section>
+<section id="how-to-fix-it-theres-more-than-one-way" class="level1">
+<h1>How to fix it (there’s more than one way)</h1>
+<p>So how can we improve this? Well, we need to make sure we close the file <em>whatever</em> happens. We can achieve this with the <code>try: … except: … else: … finally: …</code> syntax in Python:</p>
+<div class="cell" data-execution_count="3">
+<div class="sourceCode cell-code" id="cb4" style="background: #f1f3f5;"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb4-1"><span class="kw" style="color: #003B4F;">def</span> divide(x, y):</span>
+<span id="cb4-2">  <span class="cf" style="color: #003B4F;">try</span>:</span>
+<span id="cb4-3">    logger_file <span class="op" style="color: #5E5E5E;">=</span> <span class="bu" style="color: null;">open</span>(<span class="st" style="color: #20794D;">'app.log'</span>, <span class="st" style="color: #20794D;">'a'</span>)</span>
+<span id="cb4-4">    logger_file.write(<span class="ss" style="color: #20794D;">f'Adding </span><span class="sc" style="color: #5E5E5E;">{</span>x<span class="sc" style="color: #5E5E5E;">}</span><span class="ss" style="color: #20794D;"> and </span><span class="sc" style="color: #5E5E5E;">{</span>y<span class="sc" style="color: #5E5E5E;">}</span><span class="ss" style="color: #20794D;">...'</span>)</span>
+<span id="cb4-5">    z <span class="op" style="color: #5E5E5E;">=</span> x <span class="op" style="color: #5E5E5E;">/</span> y</span>
+<span id="cb4-6">  <span class="cf" style="color: #003B4F;">except</span> <span class="pp" style="color: #AD0000;">ZeroDivisionError</span> <span class="im" style="color: #00769E;">as</span> err:</span>
+<span id="cb4-7">    <span class="cf" style="color: #003B4F;">raise</span> err</span>
+<span id="cb4-8">  <span class="cf" style="color: #003B4F;">finally</span>:</span>
+<span id="cb4-9">    logger_file.close()</span>
+<span id="cb4-10">  <span class="cf" style="color: #003B4F;">return</span> z</span></code></pre></div>
+</div>
+<p>With this syntax in place, any snippets which fall under the <code>finally</code> clause will always be executed regardless of success or failure.</p>
+<p>The thing is: that’s a lot of boilerplate to be adding to all of your functions and methods. There has to be a simpler way, surely? You’re in luck: Python has a better way.</p>
+<p>You can build your own context managers by either implementing a class with an <code>__enter__()</code> and <code>__exit()__</code> method or you can leverage the native Python module <code>contextlib</code> to achieve the same thing. I recommend you check out <a href="https://book.pythontips.com/en/latest/context_managers.html">this link</a> for a thorough explanation of these resources.</p>
+</section>
+<section id="where-i-find-this-useful" class="level1">
+<h1>Where I find this useful</h1>
+<p>I manage database cursors (which are used toe execute queries against a database) using the context management protocol.</p>
+<p>You can see this with a simple SQLite setup as below,</p>
+<div class="cell" data-execution_count="4">
+<div class="sourceCode cell-code" id="cb5" style="background: #f1f3f5;"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb5-1"><span class="im" style="color: #00769E;">from</span> contextlib <span class="im" style="color: #00769E;">import</span> contextmanager </span>
+<span id="cb5-2"></span>
+<span id="cb5-3"><span class="kw" style="color: #003B4F;">class</span> SQLite():</span>
+<span id="cb5-4"></span>
+<span id="cb5-5">    <span class="kw" style="color: #003B4F;">def</span> <span class="fu" style="color: #4758AB;">__init__</span>(<span class="va" style="color: #111111;">self</span>, database_path):</span>
+<span id="cb5-6">        <span class="va" style="color: #111111;">self</span>.database_path <span class="op" style="color: #5E5E5E;">=</span> database_path</span>
+<span id="cb5-7">        <span class="va" style="color: #111111;">self</span>._conn <span class="op" style="color: #5E5E5E;">=</span> sqlite3.<span class="ex" style="color: null;">connect</span>(database_path, detect_types<span class="op" style="color: #5E5E5E;">=</span>sqlite3.PARSE_DECLTYPES)</span>
+<span id="cb5-8">        <span class="va" style="color: #111111;">self</span>._conn.row_factory <span class="op" style="color: #5E5E5E;">=</span> sqlite3.Row</span>
+<span id="cb5-9">        <span class="bu" style="color: null;">print</span>(<span class="st" style="color: #20794D;">'Connection opened.'</span>)</span>
+<span id="cb5-10"></span>
+<span id="cb5-11">    <span class="kw" style="color: #003B4F;">def</span> <span class="fu" style="color: #4758AB;">__repr__</span>(<span class="va" style="color: #111111;">self</span>):</span>
+<span id="cb5-12">        <span class="cf" style="color: #003B4F;">return</span> <span class="ss" style="color: #20794D;">f'SQLite object (path: </span><span class="sc" style="color: #5E5E5E;">{</span><span class="va" style="color: #111111;">self</span><span class="sc" style="color: #5E5E5E;">.</span>database_path<span class="sc" style="color: #5E5E5E;">}</span><span class="ss" style="color: #20794D;">)'</span></span>
+<span id="cb5-13">    </span>
+<span id="cb5-14">    <span class="kw" style="color: #003B4F;">def</span> <span class="fu" style="color: #4758AB;">__str__</span>(<span class="va" style="color: #111111;">self</span>):</span>
+<span id="cb5-15">        <span class="cf" style="color: #003B4F;">return</span> <span class="ss" style="color: #20794D;">f'SQLite object (path: </span><span class="sc" style="color: #5E5E5E;">{</span><span class="va" style="color: #111111;">self</span><span class="sc" style="color: #5E5E5E;">.</span>database_path<span class="sc" style="color: #5E5E5E;">}</span><span class="ss" style="color: #20794D;">)'</span></span>
+<span id="cb5-16">    </span>
+<span id="cb5-17">    <span class="kw" style="color: #003B4F;">def</span> close(<span class="va" style="color: #111111;">self</span>):</span>
+<span id="cb5-18">        <span class="va" style="color: #111111;">self</span>._conn.close()</span>
+<span id="cb5-19">        <span class="bu" style="color: null;">print</span>(<span class="st" style="color: #20794D;">'Connection closed.'</span>)</span>
+<span id="cb5-20"></span>
+<span id="cb5-21">    <span class="at" style="color: #657422;">@contextmanager</span></span>
+<span id="cb5-22">    <span class="kw" style="color: #003B4F;">def</span> cursor(<span class="va" style="color: #111111;">self</span>):</span>
+<span id="cb5-23">        cursor <span class="op" style="color: #5E5E5E;">=</span> <span class="va" style="color: #111111;">self</span>._conn.cursor()</span>
+<span id="cb5-24">        <span class="cf" style="color: #003B4F;">try</span>:</span>
+<span id="cb5-25">            <span class="cf" style="color: #003B4F;">yield</span> cursor</span>
+<span id="cb5-26">        <span class="cf" style="color: #003B4F;">except</span> sqlite3.Error <span class="im" style="color: #00769E;">as</span> err:</span>
+<span id="cb5-27">            <span class="cf" style="color: #003B4F;">raise</span> err</span>
+<span id="cb5-28">        <span class="cf" style="color: #003B4F;">else</span>:</span>
+<span id="cb5-29">            <span class="va" style="color: #111111;">self</span>._conn.commit()     </span>
+<span id="cb5-30">        <span class="cf" style="color: #003B4F;">finally</span>:</span>
+<span id="cb5-31">            cursor.close()</span></code></pre></div>
+</div>
+<p>Everything before the <code>yield</code> keyword represents the acquisition of resources (i.e.&nbsp;the cursor). This is followed by the generation of the <code>cursor</code> object. Then, on exit of the method everything below the <code>yield</code> keyword is executed, including the closure of the cursor object.</p>
+<p>Pretty neat!</p>
+
+
+</section>
+
+ ]]></description>
+  <category>Python</category>
+  <category>Programming</category>
+  <guid>https://non-std-dev.netlify.app/posts/context-manage/index.html</guid>
+  <pubDate>Sat, 20 Aug 2022 23:00:00 GMT</pubDate>
+</item>
 <item>
   <title>Why it’s hard to examine programming abilities</title>
   <dc:creator>Johnny Breen</dc:creator>
@@ -33,10 +150,8 @@
 
 
  ]]></description>
-  <category>general</category>
-  <category>software</category>
-  <category>training</category>
-  <category>teaching</category>
+  <category>Teaching</category>
+  <category>Programming</category>
   <guid>https://non-std-dev.netlify.app/posts/stop-coding-exams/index.html</guid>
   <pubDate>Wed, 17 Aug 2022 23:00:00 GMT</pubDate>
 </item>
@@ -272,9 +387,8 @@ TRUE </code></pre>
 </section>
 
  ]]></description>
-  <category>programming</category>
   <category>R</category>
-  <category>functional-programming</category>
+  <category>Programming</category>
   <guid>https://non-std-dev.netlify.app/posts/closures/index.html</guid>
   <pubDate>Fri, 18 Feb 2022 00:00:00 GMT</pubDate>
 </item>

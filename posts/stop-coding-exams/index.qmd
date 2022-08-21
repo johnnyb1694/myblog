@@ -3,7 +3,7 @@ title: Why it's hard to examine programming abilities
 author: Johnny Breen
 date: '2022-08-18'
 format: html
-categories: [general,software,training,teaching]
+categories: [Teaching, Programming]
 ---
 
 Why is it so difficult to write a timed exam to assess somebody's programming skills?

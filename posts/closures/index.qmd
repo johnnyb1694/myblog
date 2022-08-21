@@ -3,12 +3,12 @@ title: Closures
 author: Johnny Breen
 date: '2022-02-18'
 format: html
-categories: [programming, R, functional-programming]
+categories: [R, Programming]
 ---
 
 Another day goes by and another poor sod finds themselves trawling through Google to figure out what on earth a closure is.
 
-Well, I say that as if this is some kind of 'hot' topic in the [#rstats](https://twitter.com/search?q=%23rstats&src=typed_query) community: it's not. If anything it's 'hot' for all the wrong reasons: we've all come across the error 'object of type closure is  not subsettable' before.
+Well, I say that as if this is some kind of 'hot' topic in the [#rstats](https://twitter.com/search?q=%23rstats&src=typed_query) community: it's not. If anything it's 'hot' for all the wrong reasons: we've all come across the error 'object of type closure is not subsettable' before.
 
 You can be a very capable data scientist and have no clue what a closure is. But, I actually *like* this stuff. Plus, this concept is something that is shared amongst other popular programming languages like JavaScript, Swift and Ruby so it's kind of useful to know what it is.
 
