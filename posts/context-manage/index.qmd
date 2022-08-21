@@ -1,0 +1,122 @@
+---
+title: Context managers (and why they're great)
+author: Johnny Breen
+date: '2022-08-21'
+format: html
+jupyter: python3
+categories: [Python, Programming]
+---
+
+So listen: to be a 'good' data analyst you don't need to know the ins and outs of software engineering. That would be a bit ridiculous.
+
+That said, there are some software engineering 'best practices' that you should cherry-pick, if you will, and adopt into your workflow. And here comes my bold statement: I firmly believe that the idea of managing 'resources' is one such practice. I know, I know.. 'managing resources'? You may as well be a librarian.
+
+But hear me out: you probably rely on tonnes of 'resources' to do your daily work without even realising it. What is your management strategy?
+
+Sorry, I'm getting a bit ahead of myself here. Let's start with the most fundamental question: what do we mean by the word 'resource' exactly?
+
+# Resources explained
+
+Suppose you are writing a program which logs result of each operation to a `.txt` file on disk. Something like this (NB: use Python's native `logger` module to perform logging; not what follows!):
+
+```{python}
+def divide(x, y):
+  logger_file = open('app.log', 'a')
+  logger_file.write(f'Adding {x} and {y}...')
+  z = x / y
+  logger_file.close()
+  return z
+```
+
+Your computer can't just *write* this call to the file straight away. If you think about it, a few steps have to happen first:
+
+1.  If this file is hosted on another machine, your machine needs to gain access to the other machine (and potentially requires authentication)
+2.  Then, pending success on step 1, a connection to this file must be opened
+3.  Data is then written into the file via the connection channel
+4.  Finally, on the *attempt* of step 2 (regardless of success or failure), the connection to the file should be closed
+
+In this context, your 'resource' is the logging file `app.log`; more formally, a 'resource' is a piece of software or hardware that is accessed and manipulated over a network. And, as you can see in the above, you need to *manage* this resource to avoid complications later down the line.
+
+What kind of complications am I speaking of? Most data analysts will be able to execute steps 1-3 successfully (because, well, they *have* to). But, again and again, I see far too many analysts fail to carry out step 4, which is the most important step.
+
+# How things can go wrong
+
+The question you have to ask yourself here is what if the step in between `open()` and `close()` fails? In other words, what if `z = x / y` fails? Well, it will at some point because I have news for you: you can't divide by zero,
+
+```{python}
+try:
+  divide(5, 0)
+except ZeroDivisionError as err:
+  print(err)
+```
+
+Think about the control flow of our function `divide()` for a second: once it encounters an error, it will not close the file. Execution will terminate and the connection to our file will be left open. This is not an issue with a small number of connections but imagine that you are running this call, repeatedly, millions of times. There is a cost to maintaining millions of open connections: memory leakage.
+
+We are using a contrived example to demonstrate the point here. This issue becomes much more pertinent when interacting with remote database systems.
+
+# How to fix it (there's more than one way)
+
+So how can we improve this? Well, we need to make sure we close the file *whatever* happens. We can achieve this with the `try: … except: … else: … finally: …` syntax in Python:
+
+```{python}
+def divide(x, y):
+  try:
+    logger_file = open('app.log', 'a')
+    logger_file.write(f'Adding {x} and {y}...')
+    z = x / y
+  except ZeroDivisionError as err:
+    raise err
+  finally:
+    logger_file.close()
+  return z
+```
+
+With this syntax in place, any snippets which fall under the `finally` clause will always be executed regardless of success or failure.
+
+The thing is: that's a lot of boilerplate to be adding to all of your functions and methods. There has to be a simpler way, surely? You're in luck: Python has a better way.
+
+You can build your own context managers by either implementing a class with an `__enter__()` and `__exit()__` method or you can leverage the native Python module `contextlib` to achieve the same thing. I recommend you check out [this link](https://book.pythontips.com/en/latest/context_managers.html) for a thorough explanation of these resources.
+
+# Where I find this useful
+
+I manage database cursors (which are used toe execute queries against a database) using the context management protocol.
+
+You can see this with a simple SQLite setup as below,
+
+```{python}
+from contextlib import contextmanager 
+
+class SQLite():
+
+    def __init__(self, database_path):
+        self.database_path = database_path
+        self._conn = sqlite3.connect(database_path, detect_types=sqlite3.PARSE_DECLTYPES)
+        self._conn.row_factory = sqlite3.Row
+        print('Connection opened.')
+
+    def __repr__(self):
+        return f'SQLite object (path: {self.database_path})'
+    
+    def __str__(self):
+        return f'SQLite object (path: {self.database_path})'
+    
+    def close(self):
+        self._conn.close()
+        print('Connection closed.')
+
+    @contextmanager
+    def cursor(self):
+        cursor = self._conn.cursor()
+        try:
+            yield cursor
+        except sqlite3.Error as err:
+            raise err
+        else:
+            self._conn.commit()     
+        finally:
+            cursor.close()
+```
+
+Everything before the `yield` keyword represents the acquisition of resources (i.e. the cursor). This is followed by the generation of the `cursor` object. Then, on exit of the method everything below the `yield` keyword is executed, including the closure of the cursor object.
+
+Pretty neat!
