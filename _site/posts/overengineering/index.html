@@ -1,0 +1,314 @@
+<!DOCTYPE html>
+<html xmlns="http://www.w3.org/1999/xhtml" lang="en" xml:lang="en"><head>
+
+<meta charset="utf-8">
+<meta name="generator" content="quarto-1.0.38">
+
+<meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=yes">
+
+<meta name="author" content="Johnny Breen">
+<meta name="dcterms.date" content="2022-09-09">
+
+<title>Non Standard Dev - Don’t default to Shiny. Go Quarto instead</title>
+<style>
+code{white-space: pre-wrap;}
+span.smallcaps{font-variant: small-caps;}
+span.underline{text-decoration: underline;}
+div.column{display: inline-block; vertical-align: top; width: 50%;}
+div.hanging-indent{margin-left: 1.5em; text-indent: -1.5em;}
+ul.task-list{list-style: none;}
+</style>
+
+
+<script src="../../site_libs/quarto-nav/quarto-nav.js"></script>
+<script src="../../site_libs/quarto-nav/headroom.min.js"></script>
+<script src="../../site_libs/clipboard/clipboard.min.js"></script>
+<script src="../../site_libs/quarto-search/autocomplete.umd.js"></script>
+<script src="../../site_libs/quarto-search/fuse.min.js"></script>
+<script src="../../site_libs/quarto-search/quarto-search.js"></script>
+<meta name="quarto:offset" content="../../">
+<script src="../../site_libs/cookie-consent/cookie-consent.js"></script>
+<link href="../../site_libs/cookie-consent/cookie-consent.css" rel="stylesheet">
+<script src="../../site_libs/quarto-html/quarto.js"></script>
+<script src="../../site_libs/quarto-html/popper.min.js"></script>
+<script src="../../site_libs/quarto-html/tippy.umd.min.js"></script>
+<script src="../../site_libs/quarto-html/anchor.min.js"></script>
+<link href="../../site_libs/quarto-html/tippy.css" rel="stylesheet">
+<link href="../../site_libs/quarto-html/quarto-syntax-highlighting.css" rel="stylesheet" id="quarto-text-highlighting-styles">
+<script src="../../site_libs/bootstrap/bootstrap.min.js"></script>
+<link href="../../site_libs/bootstrap/bootstrap-icons.css" rel="stylesheet">
+<link href="../../site_libs/bootstrap/bootstrap.min.css" rel="stylesheet" id="quarto-bootstrap" data-mode="light">
+<script id="quarto-search-options" type="application/json">{
+  "location": "navbar",
+  "copy-button": false,
+  "collapse-after": 3,
+  "panel-placement": "end",
+  "type": "overlay",
+  "limit": 20,
+  "language": {
+    "search-no-results-text": "No results",
+    "search-matching-documents-text": "matching documents",
+    "search-copy-link-title": "Copy link to search",
+    "search-hide-matches-text": "Hide additional matches",
+    "search-more-match-text": "more match in this document",
+    "search-more-matches-text": "more matches in this document",
+    "search-clear-button-title": "Clear",
+    "search-detached-cancel-button-title": "Cancel",
+    "search-submit-button-title": "Submit"
+  }
+}</script>
+
+<script type="text/javascript" charset="UTF-8">
+document.addEventListener('DOMContentLoaded', function () {
+cookieconsent.run({
+  "notice_banner_type":"simple",
+  "consent_type":"implied",
+  "palette":"light",
+  "language":"en",
+  "page_load_consent_levels":["strictly-necessary","functionality","tracking","targeting"],
+  "notice_banner_reject_button_hide":false,
+  "preferences_center_close_button_hide":false,
+  "website_name":""
+  });
+});
+</script> 
+  
+
+
+<link rel="stylesheet" href="../../styles.css">
+</head>
+
+<body class="nav-fixed fullcontent">
+
+<div id="quarto-search-results"></div>
+  <header id="quarto-header" class="headroom fixed-top">
+    <nav class="navbar navbar-expand-lg navbar-dark ">
+      <div class="navbar-container container-fluid">
+      <a class="navbar-brand" href="../../index.html">
+    <span class="navbar-title">Non Standard Dev</span>
+  </a>
+          <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbarCollapse" aria-controls="navbarCollapse" aria-expanded="false" aria-label="Toggle navigation" onclick="if (window.quartoToggleHeadroom) { window.quartoToggleHeadroom(); }">
+  <span class="navbar-toggler-icon"></span>
+</button>
+          <div class="collapse navbar-collapse" id="navbarCollapse">
+            <ul class="navbar-nav navbar-nav-scroll ms-auto">
+  <li class="nav-item">
+    <a class="nav-link" href="../../about.html">About</a>
+  </li>  
+  <li class="nav-item compact">
+    <a class="nav-link" href="https://github.com/johnnyb1694"><i class="bi bi-github" role="img">
+</i> 
+ </a>
+  </li>  
+  <li class="nav-item compact">
+    <a class="nav-link" href="https://twitter.com/johnnyb1694"><i class="bi bi-twitter" role="img">
+</i> 
+ </a>
+  </li>  
+  <li class="nav-item compact">
+    <a class="nav-link" href="../../index.xml"><i class="bi bi-rss" role="img">
+</i> 
+ </a>
+  </li>  
+</ul>
+              <div id="quarto-search" class="" title="Search"></div>
+          </div> <!-- /navcollapse -->
+      </div> <!-- /container-fluid -->
+    </nav>
+</header>
+<!-- content -->
+<header id="title-block-header" class="quarto-title-block default page-columns page-full">
+  <div class="quarto-title-banner page-columns page-full">
+    <div class="quarto-title column-body">
+      <h1 class="title">Don’t default to Shiny. Go Quarto instead</h1>
+                                <div class="quarto-categories">
+                <div class="quarto-category">Programming</div>
+                <div class="quarto-category">R</div>
+              </div>
+                  </div>
+  </div>
+    
+  
+  <div class="quarto-title-meta">
+
+      <div>
+      <div class="quarto-title-meta-heading">Author</div>
+      <div class="quarto-title-meta-contents">
+               <p>Johnny Breen </p>
+            </div>
+    </div>
+      
+      <div>
+      <div class="quarto-title-meta-heading">Published</div>
+      <div class="quarto-title-meta-contents">
+        <p class="date">September 9, 2022</p>
+      </div>
+    </div>
+      
+    </div>
+    
+  
+  </header><div id="quarto-content" class="quarto-container page-columns page-rows-contents page-layout-article page-navbar">
+<!-- sidebar -->
+<!-- margin-sidebar -->
+    
+<!-- main -->
+<main class="content quarto-banner-title-block" id="quarto-document-content">
+
+
+
+
+<p>I know, bold title right? But hear me out.</p>
+<section id="cautionary-tale" class="level1">
+<h1>Cautionary tale…</h1>
+<p>A few years ago I was working as a consultant and was asked to perform some data validation for one of our clients.</p>
+<p>My manager, being the kind of forward-thinking guy he was, decided that we ought to do this in R. I know what you’re thinking: “Forward-thinking? What’s so forward-thinking about R?”. In my defence, I was working in financial services at the time so, to my peers, it was probably a bit like observing a caveman walking around with an iPhone in 10,000 BC.</p>
+<p>Anyway back to the project at hand. What was required, at the time, was (fairly) simple: we needed to process some input data according to various recipes and verify that the numbers reconciled to what the client had generated themselves.</p>
+<p>Simple enough task, you would have thought. Except, I was a budding data analyst who had just graduated from university and had managed to get my hands on a few R projects whilst completing my degree. This meant that I had some ideas for what I wanted to do on this project. In fact, I had lots of ideas.</p>
+<p>What this meant is that I didn’t <em>just</em> write the validation scripts: I went <em>all in</em>. It was <em>heavy</em> on functional programming. I encapsulated everything (and I mean <em>everything</em>, no matter how small or insignificant) into modular components. I even added a full-blown logging system to this thing.</p>
+<p>And the brutal truth is… I had built an orbital laser to destroy an ant hill.</p>
+<p>What was so ironic about this whole experience is that it was <em>precisely my manager</em> who had taught me all of these concepts in the first place. Clearly, I had taken his advice a bit too literally. When he came to review my code, he had some unexpectedly stern words of advice for me: less is more. I had to get rid of most of what I had written. I remember him saying words to the effect of, “We aren’t trying to build a rocket to get us to Mars. We’re trying to build a bike to get us around London”.</p>
+<p>At the time, I was feeling kind of devastated. All of my hard work had been dismantled before my eyes. I felt like I had done something wrong. And.. to some extent I had done something wrong: I’d over complicated things. I had used esoteric programming paradigms where it wasn’t necessary; I had relied on third-party packages which my team would not have been familiar with; I had tried to encapsulate all components into modules which was complete overkill for a validation script (worse still, some of this encapsulation was just plain wrong: it’s bad practice to put complicated <code>switch()</code> statements into a singular function which makes different decisions based on the input argument i.e.&nbsp;what I had done!)</p>
+<p>But, in a different context - within a different working environment - my solution may have worked very well!</p>
+</section>
+<section id="dude-what-does-this-have-to-do-with-shiny" class="level1">
+<h1>Dude, what does this have to do with Shiny?</h1>
+<p>OK, I appreciate that this story may have seemed like a little bit of a detour so let me get back to the main topic at hand here...</p>
+<p>Let me start by saying something important: I love Shiny and Shiny is great. It’s great because it allows users to build dashboards <em>without having to know</em> HTML, CSS and JavaScript. That’s pretty cool. PS: if you haven’t checked out <a href="https://www.rstudio.com/conference/2022/keynotes/past-future-shiny/">Joe Cheng’s keynote talk</a> from <code>rstudio::conf2022</code>, then you really need to! It’s ace.</p>
+<p>Instead, you just need to learn how to use Shiny and the concept of reactivity. I say ‘just’ like this is simple.. It’s not! Learning Shiny takes time and practice. Shiny is like a language in itself that exists <em>within</em> R. In fact, I’m pretty sure that you could learn how to build some pretty slick Shiny apps without knowing much R at all.</p>
+<p>And this is typically where you start to run into issues. Building a ‘toy’ app for yourself or in an academic context is fine, as it isn’t likely to get too complicated. Building an enterprise application though? That’s a whole different ballgame. Suddenly you need to think a lot more about how to make your application efficient, maintainable and scalable. These are <em>software development</em> concerns more than anything else.</p>
+<p>Often, all of these concerns are far beyond the skill set of a data analyst who will nonetheless build it out themselves against their best instincts. In this scenario you normally end up with two outcomes:</p>
+<ul>
+<li><p><strong>Beginners:</strong> the analyst builds something monolithic: all of the server-side calculations are embedded within the same application as the UI element; data is pulled, in high volumes, straight from a SQL database processed using <code>dplyr</code> . Put bluntly, this is unmaintainable and you can bet that anyone who has to work on this in the future will not be able to parse or amend the codebase</p></li>
+<li><p><strong>Beginners.. who don’t realise it:</strong> sometimes you get the beginner who discovers how to write Shiny modules so ends up modularising everything. They think they’re gunslinging from the hip but, in reality, all they are doing is creating an overengineered, difficult-to-maintain application for their colleagues. Don’t be that person..!</p></li>
+</ul>
+<p>Both of these outcomes are bad for your team and that is what matters in an enterprise environment.</p>
+<p>Really, you should only be maintaining Shiny apps if you have the right expertise on your team.</p>
+<p>But it’s more than that. I would summarise my beliefs on the subject as follows:</p>
+<blockquote class="blockquote">
+<p>You should only be building a Shiny app if you actually <em>need</em> a Shiny app. Often, there is a simpler solution.</p>
+</blockquote>
+</section>
+<section id="use-quarto-or-r-markdown" class="level1">
+<h1>Use Quarto or R Markdown</h1>
+<p>I have found, in my personal experience, that a lot of Shiny apps could probably be written into a R Markdown (or Quarto nowadays) document.</p>
+<p>Now for some hotly-anticipated FAQ’s!</p>
+<ol type="1">
+<li>“Hang on Johnny, you can’t use R Markdown or Quarto to do reactivity”. Erm, yes you can! You can <a href="https://quarto.org/docs/interactive/shiny/">add reactive widgets to an R Markdown (or Quarto)</a> document.</li>
+<li>“But isn’t that going to become a mess?”. If your application is simply providing different views of data from a remote database and the reactivity is simple, it won’t become a mess because each ‘chunk’ will basically correspond to a different view. If your application is complicated and there is some kind of non-trivial user workflow, of course: use Shiny!</li>
+</ol>
+<p>To summarise, I am not saying you shouldn’t use Shiny. I am saying you should think long and hard about your decision to use Shiny in the context of (a) your product complexity; and (b) your team!</p>
+
+
+</section>
+
+</main> <!-- /main -->
+<script id="quarto-html-after-body" type="application/javascript">
+window.document.addEventListener("DOMContentLoaded", function (event) {
+  const toggleBodyColorMode = (bsSheetEl) => {
+    const mode = bsSheetEl.getAttribute("data-mode");
+    const bodyEl = window.document.querySelector("body");
+    if (mode === "dark") {
+      bodyEl.classList.add("quarto-dark");
+      bodyEl.classList.remove("quarto-light");
+    } else {
+      bodyEl.classList.add("quarto-light");
+      bodyEl.classList.remove("quarto-dark");
+    }
+  }
+  const toggleBodyColorPrimary = () => {
+    const bsSheetEl = window.document.querySelector("link#quarto-bootstrap");
+    if (bsSheetEl) {
+      toggleBodyColorMode(bsSheetEl);
+    }
+  }
+  toggleBodyColorPrimary();  
+  const icon = "";
+  const anchorJS = new window.AnchorJS();
+  anchorJS.options = {
+    placement: 'right',
+    icon: icon
+  };
+  anchorJS.add('.anchored');
+  const clipboard = new window.ClipboardJS('.code-copy-button', {
+    target: function(trigger) {
+      return trigger.previousElementSibling;
+    }
+  });
+  clipboard.on('success', function(e) {
+    // button target
+    const button = e.trigger;
+    // don't keep focus
+    button.blur();
+    // flash "checked"
+    button.classList.add('code-copy-button-checked');
+    var currentTitle = button.getAttribute("title");
+    button.setAttribute("title", "Copied!");
+    setTimeout(function() {
+      button.setAttribute("title", currentTitle);
+      button.classList.remove('code-copy-button-checked');
+    }, 1000);
+    // clear code selection
+    e.clearSelection();
+  });
+  function tippyHover(el, contentFn) {
+    const config = {
+      allowHTML: true,
+      content: contentFn,
+      maxWidth: 500,
+      delay: 100,
+      arrow: false,
+      appendTo: function(el) {
+          return el.parentElement;
+      },
+      interactive: true,
+      interactiveBorder: 10,
+      theme: 'quarto',
+      placement: 'bottom-start'
+    };
+    window.tippy(el, config); 
+  }
+  const noterefs = window.document.querySelectorAll('a[role="doc-noteref"]');
+  for (var i=0; i<noterefs.length; i++) {
+    const ref = noterefs[i];
+    tippyHover(ref, function() {
+      let href = ref.getAttribute('href');
+      try { href = new URL(href).hash; } catch {}
+      const id = href.replace(/^#\/?/, "");
+      const note = window.document.getElementById(id);
+      return note.innerHTML;
+    });
+  }
+  var bibliorefs = window.document.querySelectorAll('a[role="doc-biblioref"]');
+  for (var i=0; i<bibliorefs.length; i++) {
+    const ref = bibliorefs[i];
+    const cites = ref.parentNode.getAttribute('data-cites').split(' ');
+    tippyHover(ref, function() {
+      var popup = window.document.createElement('div');
+      cites.forEach(function(cite) {
+        var citeDiv = window.document.createElement('div');
+        citeDiv.classList.add('hanging-indent');
+        citeDiv.classList.add('csl-entry');
+        var biblioDiv = window.document.getElementById('ref-' + cite);
+        if (biblioDiv) {
+          citeDiv.innerHTML = biblioDiv.innerHTML;
+        }
+        popup.appendChild(citeDiv);
+      });
+      return popup.innerHTML;
+    });
+  }
+});
+</script>
+<script src="https://utteranc.es/client.js" repo="johnnyb1694/myblog-comments" issue-term="pathname" theme="github-light" crossorigin="anonymous" async="">
+</script>
+</div> <!-- /content -->
+<footer class="footer">
+  <div class="nav-footer">
+      <div class="nav-footer-center"><div class="cookie-consent-footer"><a href="#" id="open_preferences_center">Cookie Preferences</a></div></div>
+  </div>
+</footer>
+
+
+
+</body></html>

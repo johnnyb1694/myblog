@@ -1,0 +1,64 @@
+---
+title: Don't default to Shiny. Go Quarto instead
+author: Johnny Breen
+date: '2022-09-09'
+format: html
+categories: [Programming, R]
+---
+
+I know, bold title right? But hear me out.
+
+# Cautionary tale...
+
+A few years ago I was working as a consultant and was asked to perform some data validation for one of our clients.
+
+My manager, being the kind of forward-thinking guy he was, decided that we ought to do this in R. I know what you're thinking: "Forward-thinking? What's so forward-thinking about R?". In my defence, I was working in financial services at the time so, to my peers, it was probably a bit like observing a caveman walking around with an iPhone in 10,000 BC.
+
+Anyway back to the project at hand. What was required, at the time, was (fairly) simple: we needed to process some input data according to various recipes and verify that the numbers reconciled to what the client had generated themselves.
+
+Simple enough task, you would have thought. Except, I was a budding data analyst who had just graduated from university and had managed to get my hands on a few R projects whilst completing my degree. This meant that I had some ideas for what I wanted to do on this project. In fact, I had lots of ideas.
+
+What this meant is that I didn't *just* write the validation scripts: I went *all in*. It was *heavy* on functional programming. I encapsulated everything (and I mean *everything*, no matter how small or insignificant) into modular components. I even added a full-blown logging system to this thing.
+
+And the brutal truth is... I had built an orbital laser to destroy an ant hill.
+
+What was so ironic about this whole experience is that it was *precisely my manager* who had taught me all of these concepts in the first place. Clearly, I had taken his advice a bit too literally. When he came to review my code, he had some unexpectedly stern words of advice for me: less is more. I had to get rid of most of what I had written. I remember him saying words to the effect of, "We aren't trying to build a rocket to get us to Mars. We're trying to build a bike to get us around London".
+
+At the time, I was feeling kind of devastated. All of my hard work had been dismantled before my eyes. I felt like I had done something wrong. And.. to some extent I had done something wrong: I'd over complicated things. I had used esoteric programming paradigms where it wasn't necessary; I had relied on third-party packages which my team would not have been familiar with; I had tried to encapsulate all components into modules which was complete overkill for a validation script (worse still, some of this encapsulation was just plain wrong: it's bad practice to put complicated `switch()` statements into a singular function which makes different decisions based on the input argument i.e. what I had done!)
+
+But, in a different context - within a different working environment - my solution may have worked very well!
+
+# Dude, what does this have to do with Shiny?
+
+OK, I appreciate that this story may have seemed like a little bit of a detour so let me get back to the main topic at hand here\...
+
+Let me start by saying something important: I love Shiny and Shiny is great. It's great because it allows users to build dashboards *without having to know* HTML, CSS and JavaScript. That's pretty cool. PS: if you haven't checked out [Joe Cheng's keynote talk](https://www.rstudio.com/conference/2022/keynotes/past-future-shiny/) from `rstudio::conf2022`, then you really need to! It's ace.
+
+Instead, you just need to learn how to use Shiny and the concept of reactivity. I say 'just' like this is simple.. It's not! Learning Shiny takes time and practice. Shiny is like a language in itself that exists *within* R. In fact, I'm pretty sure that you could learn how to build some pretty slick Shiny apps without knowing much R at all.
+
+And this is typically where you start to run into issues. Building a 'toy' app for yourself or in an academic context is fine, as it isn't likely to get too complicated. Building an enterprise application though? That's a whole different ballgame. Suddenly you need to think a lot more about how to make your application efficient, maintainable and scalable. These are *software development* concerns more than anything else.
+
+Often, all of these concerns are far beyond the skill set of a data analyst who will nonetheless build it out themselves against their best instincts. In this scenario you normally end up with two outcomes:
+
+-   **Beginners:** the analyst builds something monolithic: all of the server-side calculations are embedded within the same application as the UI element; data is pulled, in high volumes, straight from a SQL database processed using `dplyr` . Put bluntly, this is unmaintainable and you can bet that anyone who has to work on this in the future will not be able to parse or amend the codebase
+
+-   **Beginners.. who don't realise it:** sometimes you get the beginner who discovers how to write Shiny modules so ends up modularising everything. They think they're gunslinging from the hip but, in reality, all they are doing is creating an overengineered, difficult-to-maintain application for their colleagues. Don't be that person..!
+
+Both of these outcomes are bad for your team and that is what matters in an enterprise environment.
+
+Really, you should only be maintaining Shiny apps if you have the right expertise on your team.
+
+But it's more than that. I would summarise my beliefs on the subject as follows:
+
+> You should only be building a Shiny app if you actually *need* a Shiny app. Often, there is a simpler solution.
+
+# Use Quarto or R Markdown
+
+I have found, in my personal experience, that a lot of Shiny apps could probably be written into a R Markdown (or Quarto nowadays) document.
+
+Now for some hotly-anticipated FAQ's!
+
+1.  "Hang on Johnny, you can't use R Markdown or Quarto to do reactivity". Erm, yes you can! You can [add reactive widgets to an R Markdown (or Quarto)](https://quarto.org/docs/interactive/shiny/) document.
+2.  "But isn't that going to become a mess?". If your application is simply providing different views of data from a remote database and the reactivity is simple, it won't become a mess because each 'chunk' will basically correspond to a different view. If your application is complicated and there is some kind of non-trivial user workflow, of course: use Shiny!
+
+To summarise, I am not saying you shouldn't use Shiny. I am saying you should think long and hard about your decision to use Shiny in the context of (a) your product complexity; and (b) your team!
